@@ -1,10 +1,8 @@
 from django.views import View
 from django.http import JsonResponse
-from django.core import serializers
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
-from django.views.decorators.csrf import csrf_protect, csrf_exempt
-from django.contrib.auth import login, authenticate, logout
+from django.views.decorators.csrf import csrf_exempt
 
 from stores.models import Store
 from uuid import uuid4
@@ -15,7 +13,8 @@ import json
 @method_decorator(login_required, name='dispatch')
 @method_decorator(csrf_exempt, name='dispatch')
 class StoreDetail(View):
-    def get(self, request, pk, *args, **kwargs):        
+    
+    def get(self, request, pk, *args, **kwargs):
 
         store = None
         try:
@@ -41,11 +40,15 @@ class StoreDetail(View):
 @method_decorator(login_required, name='dispatch')
 @method_decorator(csrf_exempt, name='dispatch')
 class CreateStore(View):
-    
+
+    request_data = None
+
     def post(self, request, *args, **kwargs):
 
-        name = self.request.POST['name']
-        products = self.request.POST['products']
+        self.request_data = json.loads(self.request.body)
+
+        name = self.request_data['name']
+        products = self.request_data['products'] if 'products' in self.request_data else None
         owner = self.request.user
         
         try:
@@ -79,11 +82,21 @@ class CreateStore(View):
 @method_decorator(login_required, name='dispatch')
 @method_decorator(csrf_exempt, name='dispatch')
 class AddProducts(View):
-    
+
+    request_data = None
+
     def post(self, request, *args, **kwargs):
 
-        store_id = self.request.POST['store_id']
-        products_json = self.request.POST['products']
+        try:
+            self.request_data = json.loads(self.request.body)
+
+        except:
+            return JsonResponse({
+                'msg': 'json product malformed.'
+            })
+
+        store_id = self.request_data['store_id']
+        products_json = self.request_data['products'] if 'products' in self.request_data else None
         
         store = None
         products = None
@@ -95,19 +108,15 @@ class AddProducts(View):
             return JsonResponse({
                 'msg': 'Store not found.'
             })
-        
-        try:
-            products_json = json.loads(products_json)
-
-        except:
-            return JsonResponse({
-                'msg': 'json product malformed.'
-            })
 
         for obj in products_json:
             obj['id'] = uuid4().__str__()
 
-        store.products += products_json
+        if store.products is None:
+            store.products = products_json
+        else:
+            store.products += products_json
+
         store.save()
         return JsonResponse({
             'products_added': products_json,
@@ -116,3 +125,5 @@ class AddProducts(View):
 
     def dispatch(self, *args, **kwargs):
         return super(AddProducts, self).dispatch(*args, **kwargs)
+
+

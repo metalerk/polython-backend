@@ -7,14 +7,20 @@ from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from django.contrib.auth import login, authenticate, logout
 
 from users.models import User
-from utils.utils import get_object_or_None
+import json
 
 
 @method_decorator(csrf_exempt, name='dispatch')
 class LoginUser(View):
+
+	request_data = None
+
 	def post(self, request, *args, **kwargs):
-		username = self.request.POST['username']
-		password = self.request.POST['password']
+
+		self.request_data = json.loads(self.request.body)
+		
+		username = self.request_data['username']
+		password = self.request_data['password']
 		user = authenticate(request, username=username, password=password)
 
 		if user is not None:
@@ -75,11 +81,15 @@ class ListUsers(View):
 @method_decorator(csrf_exempt, name='dispatch')
 class CreateUser(View):
 	
+	request_data = None
+
 	def post(self, request, *args, **kwargs):
 
-		username = self.request.POST['username']
-		password = self.request.POST['password']
-		email = self.request.POST['email']
+		self.request_data = json.loads(self.request.body)
+
+		username = self.request_data['username']
+		password = self.request_data['password']
+		email = self.request_data['email']
 
 		try:
 			User.objects.get(username=username)
@@ -109,3 +119,13 @@ class CreateUser(View):
 
 	def dispatch(self, *args, **kwargs):
 		return super(CreateUser, self).dispatch(*args, **kwargs)
+
+
+@method_decorator(login_required, name='dispatch')
+class LogoutUser(View):
+
+    def get(self, request, *args, **kwargs):
+        logout(request)
+        return JsonResponse({
+			'msg': 'See ya !'
+		})
