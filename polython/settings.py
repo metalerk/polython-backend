@@ -46,7 +46,6 @@ HOUSE_APPS = [
 
 VENDOR_APPS = [
     'admin_honeypot',
-    'rest_framework'
 ]
 
 INSTALLED_APPS = DJANGO_APPS + HOUSE_APPS + VENDOR_APPS
@@ -95,13 +94,6 @@ DATABASES = {
         'HOST': os.environ['DB_HOST'],
         'PORT': os.environ['DB_PORT'],
     }
-}
-
-REST_FRAMEWORK = {
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAdminUser',
-    ],
-    'PAGE_SIZE': 10
 }
 
 # Password validation

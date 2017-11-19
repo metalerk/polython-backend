@@ -16,15 +16,9 @@ Including another URLconf
 from django.conf.urls import url, include
 from django.contrib import admin
 
-from rest_framework import routers
-from polython import views
-
 urlpatterns = [
     url(r'^secret/', admin.site.urls),
     url(r'^admin/', include('admin_honeypot.urls', namespace='admin_honeypot')),
-    url(r'^$', views.api_root),
-    url(r'^api-auth/', include('rest_framework.urls',
-                               namespace='rest_framework')),
     url(r'^', include('users.urls', namespace='users')),
     url(r'^', include('stores.urls', namespace='stores')),
 ]
