@@ -4,11 +4,7 @@ from users.models import User
  
  
 class UserSerializer(serializers.HyperlinkedModelSerializer):
-    todos = serializers.HyperlinkedRelatedField(
-        many=True,
-        view_name='todos:todo-detail',
-        read_only=True
-    )
+    url = serializers.HyperlinkedIdentityField(view_name='users:user-detail')
     password = serializers.CharField(write_only=True)
  
     def create(self, validated_data):
@@ -32,10 +28,4 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
         model = User
         fields = ('url', 'id', 'username',
                   'password', 'first_name', 'last_name',
-                  'email', 'todos'
-                  )
-        extra_kwargs = {
-            'url': {
-                'view_name': 'users:user-detail',
-            }
-}
+                  'email',)

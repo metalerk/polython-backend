@@ -40,10 +40,8 @@ DJANGO_APPS = [
 ]
 
 HOUSE_APPS = [
-    'users'
-]
-
-DJANGO_THEMES = [
+    'users',
+    'stores',
 ]
 
 VENDOR_APPS = [
@@ -51,7 +49,7 @@ VENDOR_APPS = [
     'rest_framework'
 ]
 
-INSTALLED_APPS = DJANGO_THEMES + DJANGO_APPS + HOUSE_APPS + VENDOR_APPS
+INSTALLED_APPS = DJANGO_APPS + HOUSE_APPS + VENDOR_APPS
 
 
 MIDDLEWARE = [
