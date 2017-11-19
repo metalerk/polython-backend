@@ -4,6 +4,6 @@ from stores import views
  
  
 urlpatterns = [
-    url(r'^stores/$', views.StoreList.as_view(), name='store-list'),
+	url(r'^stores/create/$', views.CreateStore.as_view(), name='store-create'),
     url(r'^stores/(?P<pk>[0-9a-f-]+)/$', views.StoreDetail.as_view(), name='store-detail'),
 ]

@@ -1,31 +1,111 @@
+from django.views import View
+from django.http import JsonResponse
+from django.core import serializers
+from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import login_required
+from django.views.decorators.csrf import csrf_protect, csrf_exempt
+from django.contrib.auth import login, authenticate, logout
+
 from users.models import User
-from rest_framework import generics
-from rest_framework.response import Response
-from rest_framework.reverse import reverse
-from rest_framework.authentication import SessionAuthentication, BasicAuthentication
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.views import APIView
+from utils.utils import get_object_or_None
 
-from users.serializers import UserSerializer
- 
- 
-class UserList(generics.ListCreateAPIView):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-    authentication_classes = (BasicAuthentication,)
-    permission_classes = (IsAuthenticated,)
 
-    def get(self, request, format=None):
-        content = {
-            'user': request.user.username,  # `django.contrib.auth.User` instance.
-        }
-        return Response(content)
+@method_decorator(csrf_exempt, name='dispatch')
+class LoginUser(View):
+	def post(self, request, *args, **kwargs):
+		username = self.request.POST['username']
+		password = self.request.POST['password']
+		user = authenticate(request, username=username, password=password)
 
- 
-class UserDetail(generics.RetrieveUpdateDestroyAPIView):
-    serializer_class = UserSerializer
-    authentication_classes = (BasicAuthentication,)
-    permission_classes = (IsAuthenticated,)
- 
-    def get_queryset(self):
-    	return User.objects.all().filter(username=self.request.user)
+		if user is not None:
+			login(request, user)
+			return JsonResponse({'msg': 'ok'})
+		else:
+			return JsonResponse({'msg': 'error'})
+		return super(LoginUser, self).get(request, *args, **kwargs)
+
+	def dispatch(self, *args, **kwargs):
+		return super(LoginUser, self).dispatch(*args, **kwargs)
+
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(csrf_exempt, name='dispatch')
+class UserDetail(View):
+	def get(self, request, pk, *args, **kwargs):		
+
+		user = None
+		try:
+			user = User.objects.get(pk=pk.__str__())
+		except Exception as e:
+			pass
+
+		if user is not None:
+			return JsonResponse({
+				'id': user.pk.__str__(),
+				'username': user.username,
+				'email': user.email
+			})
+		else:
+			return JsonResponse({
+				'error': 'User not exist.'
+			})
+
+	def dispatch(self, *args, **kwargs):
+		return super(UserDetail, self).dispatch(*args, **kwargs)
+
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(csrf_exempt, name='dispatch')
+class ListUsers(View):
+	def get(self, request, *args, **kwargs):
+
+		users = [{
+			'id': user.pk.__str__(),
+			'username': user.username,
+			'email': user.email
+		} for user in User.objects.filter()]
+		print(users)
+
+		return JsonResponse(users, safe=False)
+
+	def dispatch(self, *args, **kwargs):
+		return super(ListUsers, self).dispatch(*args, **kwargs)
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class CreateUser(View):
+	
+	def post(self, request, *args, **kwargs):
+
+		username = self.request.POST['username']
+		password = self.request.POST['password']
+		email = self.request.POST['email']
+
+		try:
+			User.objects.get(username=username)
+			return JsonResponse({
+				'msg': 'username taken.'
+			})
+
+		except:
+			pass
+		
+		try:
+			User.objects.get(email=email)
+			return JsonResponse({
+				'msg': 'email taken.'
+			})
+
+		except:
+			pass
+
+		user = User.objects.create_user(username, password=password)
+		user.email = email
+		user.is_superuser= False
+		user.save()
+		return JsonResponse({
+			'id': user.pk.__str__()
+		})
+
+	def dispatch(self, *args, **kwargs):
+		return super(CreateUser, self).dispatch(*args, **kwargs)
