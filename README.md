@@ -50,7 +50,7 @@ Params:
 ```json
 {
 	"username": "pepito"
-	"password": "purocarteldesantaalvcompa,
+	"password": "purocarteldesantaalvcompa",
 	"email": "pepito@polython.com"
 }
 ```
