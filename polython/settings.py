@@ -42,6 +42,7 @@ DJANGO_APPS = [
 HOUSE_APPS = [
     'users',
     'stores',
+    'sales',
 ]
 
 VENDOR_APPS = [
@@ -115,6 +116,16 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.sendgrid.net'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = os.environ['EMAIL_USER']
+EMAIL_HOST_PASSWORD = os.environ['EMAIL_PASSWORD']
+SERVER_EMAIL = EMAIL_HOST_USER
+DEFAULT_FROM_EMAIL = 'Dirac Team <noreply@asesoriasdirac.com>'
 
 
 # Internationalization

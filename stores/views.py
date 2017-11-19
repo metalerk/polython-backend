@@ -7,6 +7,7 @@ from django.views.decorators.csrf import csrf_protect, csrf_exempt
 from django.contrib.auth import login, authenticate, logout
 
 from stores.models import Store
+from uuid import uuid4
 
 import json
 
@@ -73,3 +74,45 @@ class CreateStore(View):
 
     def dispatch(self, *args, **kwargs):
         return super(CreateStore, self).dispatch(*args, **kwargs)
+
+
+@method_decorator(login_required, name='dispatch')
+@method_decorator(csrf_exempt, name='dispatch')
+class AddProducts(View):
+    
+    def post(self, request, *args, **kwargs):
+
+        store_id = self.request.POST['store_id']
+        products_json = self.request.POST['products']
+        
+        store = None
+        products = None
+
+        try:
+            store = Store.objects.get(pk=store_id)
+
+        except:
+            return JsonResponse({
+                'msg': 'Store not found.'
+            })
+        
+        try:
+            products_json = json.loads(products_json)
+
+        except:
+            return JsonResponse({
+                'msg': 'json product malformed.'
+            })
+
+        for obj in products_json:
+            obj['id'] = uuid4().__str__()
+
+        store.products += products_json
+        store.save()
+        return JsonResponse({
+            'products_added': products_json,
+            'msg': 'ok'
+        })
+
+    def dispatch(self, *args, **kwargs):
+        return super(AddProducts, self).dispatch(*args, **kwargs)
