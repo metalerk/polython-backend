@@ -29,7 +29,7 @@ class Sale(models.Model):
 		send_mail(
     		subject,
     		message,
-    		'notifications@polython.com',
+    		'notifications@polythonapp.com',
     		recipients,
     		fail_silently=False,
 		)
