@@ -21,4 +21,5 @@ urlpatterns = [
     url(r'^admin/', include('admin_honeypot.urls', namespace='admin_honeypot')),
     url(r'^', include('users.urls', namespace='users')),
     url(r'^', include('stores.urls', namespace='stores')),
+    url(r'^', include('sales.urls', namespace='sales')),
 ]

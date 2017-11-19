@@ -1,15 +1,10 @@
-def get_object_or_None(klass, *args, **kwargs):
-    """
-    Uses get() to return an object or None if the object does not exist.
+def get_products_data(client_products, store_products):
+    total = 0
+    product_names = list()
+    for item in client_products:
+        for obj in store_products:
+            if obj['id'] == item['id']:
+                total += float(item['quantity'] * float(obj['price']))
+                product_names.append(obj['name'])
 
-    klass may be a Model, Manager, or QuerySet object. All other passed
-    arguments and keyword arguments are used in the get() query.
-
-    Note: Like with get(), a MultipleObjectsReturned will be raised if
-    more than one object is found.
-    """
-    queryset = klass.objects.get(*args, **kwargs)
-    try:
-        return queryset
-    except Exception as e:
-        return None
+    return total, product_names

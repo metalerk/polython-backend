@@ -6,10 +6,11 @@ from django.views.decorators.csrf import csrf_exempt
 
 from stores.models import Store
 from users.models import User
+from sales.models import Sale
 from uuid import uuid4
+from utils.utils import get_products_data
 
 import json
-
 
 @method_decorator(login_required, name='dispatch')
 @method_decorator(csrf_exempt, name='dispatch')
@@ -31,18 +32,36 @@ class UpdateSale(View):
             })
 
         if status == "ACCEPTED":
-            sale.status = "ACCEPTED"
+            sale.set_approved()
         else:
-            sale.status = "REFUSED"
+            sale.set_refused()
 
         sale.save()
+
+        sale.send_email_notification(
+            subject="Your order in Polython App",
+            message=f"""
+Hi {sale.buyer.username}!
+\n
+The order in {sale.store.name.capitalize()} with ID {sale.pk} was {sale.status.lower()}.
+\n
+Products: {[product for product in sale.products]}
+\n
+Amount: ${sale.amount} MXN
+\n\n
+Sincerely,
+\n
+Polython App Team.
+""",
+            recipients=[sale.buyer.email, sale.store.owner.email]
+        )
 
         return JsonResponse({
             'msg': 'ok'
         })
         
     def dispatch(self, *args, **kwargs):
-        return super(StoreDetail, self).dispatch(*args, **kwargs)
+        return super(UpdateSale, self).dispatch(*args, **kwargs)
 
 
 @method_decorator(login_required, name='dispatch')
@@ -59,28 +78,24 @@ class CreateSale(View):
         amount = self.request_data['total_amount']
         products = self.request_data['products']
         buyer = self.request.user
+        store = None
         
         try:
-            Store.objects.get(pk=store_id)
+            store = Store.objects.get(pk=store_id)
         except:
             return JsonResponse({
                 'msg': 'Store does not exist.'
             })
-        
-        try:
-            json.loads(product)
-            return JsonResponse({
-                'msg': 'json malformed.'
-            })
 
-        except:
-            pass
+        total, cleaned_products = get_products_data(client_products=products, store_products=store.products)
 
-        store = Store(name=name, products=products, owner=owner)
-        store.save()
+        print(f"Total: {total}\nProducts: {cleaned_products}")
+
+        sale = Sale(amount=total, products=cleaned_products, buyer=buyer, store=store)
+        sale.save()
         return JsonResponse({
-            'id': store.pk.__str__()
+            'id': sale.pk.__str__()
         })
 
     def dispatch(self, *args, **kwargs):
-        return super(CreateStore, self).dispatch(*args, **kwargs)
+        return super(CreateSale, self).dispatch(*args, **kwargs)
