@@ -1,6 +1,6 @@
 # Polython Backend
 
-### Backend system for Polython App
+### Backend system for Polython App (Django Rest Framework wasn't allowed this time)
 
 To get the project just type
 
